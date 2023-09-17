@@ -1,16 +1,11 @@
 from flask import Flask, request, jsonify, render_template
-import requests
-import time
+from midjourney_api import TNL
 import os
 
 app = Flask(__name__)
 
-BASE_URL = 'https://api.thenextleg.io/v2'
-AUTH_TOKEN = 'c3e9b67c-28d1-4635-821f-cb302340f7b3'
-HEADERS = {
-    'Authorization': f'Bearer {AUTH_TOKEN}',
-    'Content-Type': 'application/json'
-}
+TNL_API_KEY = 'c3e9b67c-28d1-4635-821f-cb302340f7b3'
+tnl = TNL(TNL_API_KEY)
 
 @app.route('/')
 def index():
@@ -29,32 +24,17 @@ def process_image():
     print("Combined prompt:", combinedPrompt)  # Debugging line
 
     # Send the combined prompt to Midjourney via The Next Leg to generate the image
-    response = requests.post(f'{BASE_URL}/img-2-img', headers=HEADERS, json={
-        "msg": combinedPrompt
-    })
+    response = tnl.img_2_img(combinedPrompt)
 
-    # Debugging: Print the status code and raw response content
-    print(response.status_code)
-    print(response.text)
-
-    # Check if the response has a JSON content type
-    if 'application/json' in response.headers.get('Content-Type'):
-        responseData = response.json()
-    else:
-        print("Received non-JSON response:", response.text)
-        return jsonify({"error": "Received non-JSON response from the API"}), 500
-
-    # Check if the API returned a non-200 status code
-    if response.status_code != 200:
-        print("API returned an error:", response.text)
-        return jsonify({"error": f"API returned an error with status {response.status_code}: {response.text}"}), 500
+    # Check if the response is successful
+    if response.get('status') != 'success':
+        print("API returned an error:", response.get('message'))
+        return jsonify({"error": f"API returned an error: {response.get('message')}"}), 500
 
     # Poll for image completion
-    messageId = responseData['messageId']
+    messageId = response['messageId']
     for _ in range(20):  # Max 20 retries
-        time.sleep(5)  # Wait for 5 seconds before polling again
-        imageRes = requests.get(f'{BASE_URL}/message/{messageId}', headers=HEADERS)
-        imageResponseData = imageRes.json()
+        imageResponseData = tnl.get_message(messageId)
         if imageResponseData.get('progress') == 100:
             finalImageUrl = imageResponseData['response']['imageUrl']
             break
