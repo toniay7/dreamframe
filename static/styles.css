@@ -1,0 +1,11 @@
+.theme-image {
+    width: auto;  /* or you can set a specific width, e.g., 200px; */
+    height: auto; /* or you can set a specific height, e.g., 200px; */
+    max-width: 50%; /* this ensures that the image doesn't take up more than half the viewport width, modify as needed */
+    cursor: pointer; /* changes the cursor to a hand when over the image, indicating it's clickable */
+    margin: 10px; /* adds some spacing between images */
+    float: left; /* To position images next to each other */
+}
+.theme-image-selected {
+    border: 3px solid blue; /* or any other style change that you prefer */
+}

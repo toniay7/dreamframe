@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Your Image</title>
+  <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    
+</head>
+<body>
+
+<!-- Auswahl von Bildern -->
+<div id="imageSelection">
+    <img class="theme-image" src="https://cdn.midjourney.com/bd77eb23-1222-42da-bdf7-908a6bcb2a59/0_2_384_N.webp" onclick="selectImage('https://cdn.midjourney.com/bd77eb23-1222-42da-bdf7-908a6bcb2a59/0_2_384_N.webp')" alt="Bild 1">
+    <img class="theme-image" src="https://cdn.midjourney.com/1c711dbf-abeb-483d-bd9d-b45c1f5e6e25/0_1.png" onclick="selectImage('https://cdn.midjourney.com/1c711dbf-abeb-483d-bd9d-b45c1f5e6e25/0_1.png')" alt="Bild 2">
+    <!-- ... Weitere Bilder ... -->
+    <div style="clear:both;"></div>
+
+</div>
+
+
+<!-- Input für spezielle Anforderungen -->
+<div id="userInput">
+    <label for="specialRequest">Was möchten Sie hinzufügen?:</label>
+    <input type="text" id="specialRequest">
+    <button onclick="sendToBackend()">Bild gestalten</button>
+</div>
+
+<!-- Anzeige des finalen Bildes -->
+<img id="finalImage" src="" alt="Gestaltetes Bild">
+
+<script>
+    let selectedImageURL = '';
+    let previouslySelectedImage = null; // Add this line
+
+    function selectImage(url) {
+        // Remove the selected class from the previously selected image
+        if (previouslySelectedImage) {
+            previouslySelectedImage.classList.remove('theme-image-selected');
+        }
+        
+        // Find the new selected image element based on its source URL
+        const newlySelectedImage = document.querySelector(`.theme-image[src="${url}"]`);
+        
+        // Add the selected class to the newly selected image
+        if (newlySelectedImage) {
+            newlySelectedImage.classList.add('theme-image-selected');
+        }
+        
+        // Update the previouslySelectedImage variable
+        previouslySelectedImage = newlySelectedImage;
+
+        // The rest of your function...
+        selectedImageURL = url;
+        document.getElementById('finalImage').src = '';  // Reset the final image display
+    }
+
+    function sendToBackend() {
+        const specialRequest = document.getElementById('specialRequest').value;
+        
+        fetch('/backend-endpoint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                imageUrl: selectedImageURL,
+                request: specialRequest
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('finalImage').src = data.finalImageUrl;
+        });
+    }
+</script>
+
+
+</body>
+</html>
